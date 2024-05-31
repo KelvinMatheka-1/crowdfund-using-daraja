@@ -152,25 +152,13 @@ def lipa_na_mpesa_online():
         "PartyB": SHORT_CODE,
         "PhoneNumber": request_json['PhoneNumber'],
         "Timestamp": timestamp,
-        "CallBackURL": "https://5784-102-217-4-61.ngrok-free.app",
+        "CallBackURL": "https://4765-102-217-4-61.ngrok-free.app/callback",
         "AccountReference": f"Campaign-{request_json['AccountReference']}",
         "TransactionDesc": request_json['TransactionDesc'],
     }
     response = make_mpesa_request("https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest", payload)
     return jsonify(response), 200
 
-
-@app.route('/payment_status', methods=['POST'])
-def payment_status():
-    request_json = request.get_json()
-    payload = {
-        "BusinessShortCode": SHORT_CODE,
-        "Password": base64.b64encode((str(SHORT_CODE) + PASSKEY + datetime.now().strftime('%Y%m%d%H%M%S')).encode('utf-8')).decode('utf-8'),
-        "Timestamp": datetime.now().strftime('%Y%m%d%H%M%S'),
-        "CheckoutRequestID": request_json['CheckoutRequestID']
-    }
-
-    return jsonify(make_mpesa_request("https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query", payload)), 200
 
 @app.route('/callback', methods=['POST'])
 def callback():
@@ -179,7 +167,7 @@ def callback():
     # Check if the transaction was successful
     if data['Body']['stkCallback']['ResultCode'] == 0:
         metadata = data['Body']['stkCallback']['CallbackMetadata']['Item']
-        amount = next(item['Value'] for item in metadata if item['Name'] == 'Amount')
+        amount = float(next(item['Value'] for item in metadata if item['Name'] == 'Amount'))
         account_reference = next(item['Value'] for item in metadata if item['Name'] == 'AccountReference')
         campaign_id = int(account_reference.split('-')[1])
 
@@ -195,4 +183,4 @@ def callback():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create database tables
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5000)
