@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h2>{{ campaign.title }}</h2>
+    <p>{{ campaign.description }}</p>
+    <p>Target: {{ campaign.target_amount }}</p>
+    <p>Raised: {{ campaign.current_amount }}</p>
+    
+    <h3>Make a Donation</h3>
+    <form id="donationForm" method="POST" action="{{ url_for('lipa_na_mpesa_online') }}">
+        <div class="form-group">
+            <label for="amount">Amount</label>
+            <input type="number" id="amount" name="Amount" required>
+        </div>
+        <div class="form-group">
+            <label for="phone_number">Phone Number</label>
+            <input type="tel" id="phone_number" name="PhoneNumber" required>
+        </div>
+        <input type="hidden" name="AccountReference" value="{{ campaign.id }}">
+        <input type="hidden" name="TransactionDesc" value="Donation to {{ campaign.title }}">
+        <button type="button" onclick="submitForm()">Donate</button>
+    </form>
+
+    <div id="loading" style="display: none;">
+        <p>Processing your donation, please check your phone for an Mpesa prompt...</p>
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        function submitForm() {
+            var form = document.getElementById("donationForm");
+            var formData = new FormData(form);
+            var jsonObject = {};
+            formData.forEach(function(value, key){
+                jsonObject[key] = value;
+            });
+            var jsonPayload = JSON.stringify(jsonObject);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "{{ url_for('lipa_na_mpesa_online') }}");
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onload = function() {
+                document.getElementById("loading").style.display = "none";
+                if (xhr.status === 200) {
+                    window.location.href = "{{ url_for('home') }}";
+                } else {
+                    alert('Error: ' + xhr.responseText);
+                }
+            };
+            xhr.send(jsonPayload);
+            
+            document.getElementById("loading").style.display = "block";
+        }
+    </script>
+
+    <style>
+        .spinner {
+            border: 16px solid #f3f3f3; /* Light grey */
+            border-top: 16px solid #3e930c; /* Blue */
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #loading {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+{% endblock %}

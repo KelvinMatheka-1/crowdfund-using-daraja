@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h2>All Campaigns</h2>
+    <div class="campaigns">
+        {% for campaign in campaigns %}
+            <div class="campaign">
+                <h2><a href="{{ url_for('campaign_detail', campaign_id=campaign.id) }}">{{ campaign.title }}</a></h2>
+                <p>{{ campaign.description }}</p>
+                <p>Target: {{ campaign.target_amount }}</p>
+                <p>Raised: {{ campaign.current_amount }}</p>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
